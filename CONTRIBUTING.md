@@ -7,10 +7,10 @@
 本仓库支持的聊天记录文件格式为`jsonl`文件, 以下是其内部格式, 其中列出的字段为必需项:
 
 ```jsonl
-{"user_name": <name>, "character_name": <char>}
+{"user_name": "<name>", "character_name": "<char>"}
 {"system": <system>}
-{"name": <role name>, "mes": <message>}
-{"name": <role name>, "mes": <message>}
+{"name": "<role name>", "mes": "<message>"}
+{"name": "<role name>", "mes": "<message>"}
 ...
 ```
 
