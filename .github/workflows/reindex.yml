@@ -1,0 +1,47 @@
+name: ReIndex on Merge
+
+on:
+  # push:
+  #   branches:
+  #     - main
+  #   paths-ignore:
+  #     - "!data/**.jsonl"
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Check and Merge"]
+    types:
+      - completed
+
+jobs:
+  re-index:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout main
+      uses: actions/checkout@v4.1.7        
+      
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Re index
+      run: |
+        python reindex.py
+
+    - name: Commit index.parquet
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add index.parquet
+        git commit -m ":monocle_face: re-indexed data" || echo "No changes to commit"
+
+    - name: Push changes
+      uses: ad-m/github-push-action@v0.6.0
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: main

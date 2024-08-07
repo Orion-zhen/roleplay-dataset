@@ -1,0 +1,60 @@
+name: Check and Merge
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+    branches:
+      - main
+    # 仅对'data/'下的jsonl文件触发
+    paths-ignore:
+      - "!data/**.jsonl"
+
+jobs:
+  check-and-merge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Assign label
+        uses: actions/labeler@v5.0.0
+        
+      - name: Checkout PR
+        id: checkout-pr
+        uses: actions/checkout@v4.1.7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.1.1
+        with:
+          python-version: "3.12" # 根据需要设置Python版本
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Check data files
+        id: validate_files
+        run: |
+          python validate.py
+          if [ $? -ne 0 ]; then
+              exit 1
+          fi
+        continue-on-error: true
+
+      - name: Merge if valid
+        if: success()
+        uses: pascalgn/automerge-action@v0.16.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_LABELS: automerge
+          MERGE_METHOD: squash
+      
+      - name: Close if invalid
+        if: failure()
+        uses: superbrothers/close-pull-request@v3.0.0
+        with:
+          comment: "🥲 请根据贡献指南再次检查您的commit. Please check your commit again according to CONTRIBUTING.md"

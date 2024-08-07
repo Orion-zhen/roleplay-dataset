@@ -1,0 +1,4 @@
+automerge:
+- all:
+  - changed-files:
+    - any-glob-to-any-file: 'data/*'
