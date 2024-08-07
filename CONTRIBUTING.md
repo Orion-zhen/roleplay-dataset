@@ -8,7 +8,7 @@
 
 ```jsonl
 {"user_name": "<name>", "character_name": "<char>"}
-{"system": <system>}
+{"system": "<system>"}
 {"name": "<role name>", "mes": "<message>"}
 {"name": "<role name>", "mes": "<message>"}
 ...
