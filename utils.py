@@ -1,10 +1,13 @@
 import os
 import sys
 import json
+import email
+import imaplib
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-from typing import List, Dict, Union
+from email.message import Message
+from typing import List, Dict, Union, Optional
 
 
 def list_jsonl_files(root_dir="data/") -> List[str]:
@@ -37,6 +40,30 @@ def is_subset(indexed_files: List[str], all_files: List[str]) -> bool:
     indexed_set = set(indexed_files)
     all_set = set(all_files)
     return indexed_set.issubset(all_set)
+
+
+def is_valid_json(file_content: bytes) -> bool:
+    try:
+        content = json.loads(file_content)
+    except Exception as e:
+        print(e)
+        return False
+    if not isinstance(content, dict):
+        return False
+    if "system" not in content.keys():
+        return False
+    if "conversations" not in content.keys():
+        return False
+    conversations = content.get("conversations")
+    if not isinstance(conversations, list):
+        return False
+    for conversation in conversations:
+        if not isinstance(conversation, dict):
+            return False
+        if "from" not in conversation.keys() or "value" not in conversation.keys():
+            return False
+
+    return True
 
 
 def is_valid_jsonl(file_path: str) -> bool:
@@ -86,6 +113,54 @@ def is_valid_jsonl(file_path: str) -> bool:
             return False
 
     return True
+
+
+def save_attachment(part: Message, local_dir="data/") -> None:
+    filename = part.get_filename()
+    if filename and filename.endswith(".json"):
+        file_content = part.get_payload(decode=True)
+        if is_valid_json(file_content):
+            with open(os.path.join(local_dir, filename), "wb") as f:
+                f.write(file_content)
+                print(f"Saved: {filename}")
+        else:
+            print(f"Invalid JSON format in attachment: {filename}")
+
+
+def fetch_emails(
+    email_addr: str, email_pwd: str, server="imap.gmail.com", folder="dataset"
+) -> None:
+    mail = imaplib.IMAP4_SSL(server)
+    mail.login(email_addr, email_pwd)
+    mail.select(folder)
+
+    # 仅搜索未读邮件
+    _, messages = mail.search(None, "UNSEEN")
+    # assert isinstance(messages, List[bytes]), sys.exit(1)
+    email_ids = messages[0].split()
+
+    print(f"* Fetched {len(email_ids)} emails")
+
+    for email_id in email_ids:
+        status, msg_data = mail.fetch(email_id, "(RFC822)")
+        msg = email.message_from_bytes(msg_data[0][1])
+
+        print("\n================================")
+        print(f"Date: {msg.get('Date')}")
+        
+        for part in msg.walk():
+            if part.get_content_maintype() == "multipart":
+                continue
+            if part.get("Content-Disposition") is None:
+                continue
+
+            save_attachment(part, "data/")
+        
+        mail.store(email_id, "+FLAGS", "\\Seen")
+
+        print("================================\n")
+    
+    mail.logout()
 
 
 def to_parquet(
