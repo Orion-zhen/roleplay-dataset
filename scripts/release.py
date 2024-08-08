@@ -1,11 +1,10 @@
-from utils import list_files, gen_format, to_parquet
+from utils import gather_files, to_parquet
 
 
-if __name__ == '__main__':
-    jsonl_files = list_files("data/")
-    formatted_contents = []
-    for file in jsonl_files:
-        with open(file) as f:
-            data_list = f.readlines()
-        formatted_contents.append(gen_format(data_list))
-    to_parquet(formatted_contents, "dataset.parquet")
+def release(dir="data/", release_file="dataset.parquet"):
+    gathered_list = gather_files(dir)
+    to_parquet(gathered_list, release_file)
+
+
+if __name__ == "__main__":
+    release()

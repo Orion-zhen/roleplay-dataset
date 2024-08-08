@@ -6,6 +6,7 @@ import imaplib
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
+from tqdm import tqdm
 from email.message import Message
 from typing import List, Dict, Union, Optional
 
@@ -15,6 +16,7 @@ def list_files(root_dir="data/") -> List[str]:
         os.path.join(root, file)
         for root, _, files in os.walk(root_dir)
         for file in files
+        if file.endswith(".json")
     ]
 
 
@@ -82,6 +84,17 @@ def is_sharegpt_format(contents: List[Dict[str, Union[str, List[Dict[str, str]]]
     return True
 
 
+def is_valid(file_path: str) -> bool:
+    if not is_valid_file_or_bytes(file_path):
+        return False
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = json.load(f)
+    if not is_sharegpt_format(content):
+        return False
+
+    return True
+
+
 def is_valid_jsonl(file_path: str) -> bool:
     # 1. 读入文件
     try:
@@ -144,7 +157,11 @@ def save_attachment(part: Message, local_dir="data/") -> None:
 
 
 def fetch_emails(
-    email_addr: str, email_pwd: str, server="imap.gmail.com", criteria="UNSEEN", folder="dataset"
+    email_addr: str,
+    email_pwd: str,
+    server="imap.gmail.com",
+    criteria="UNSEEN",
+    folder="dataset",
 ) -> None:
     mail = imaplib.IMAP4_SSL(server)
     mail.login(email_addr, email_pwd)
@@ -159,7 +176,7 @@ def fetch_emails(
     for email_id in email_ids:
         status, msg_data = mail.fetch(email_id, "(RFC822)")
         assert status == "OK", "Status must be OK!"
-        
+
         msg = email.message_from_bytes(msg_data[0][1])
 
         print("\n================================")
@@ -178,6 +195,17 @@ def fetch_emails(
         print("================================\n")
 
     mail.logout()
+
+
+def gather_files(root_dir="data/") -> List[Dict[str, Union[str, List[Dict[str, str]]]]]:
+    all_files = list_files(root_dir)
+    gathered_list = []
+    for file in tqdm(all_files):
+        with open(file, "r", encoding="utf-8") as f:
+            content = json.load(f)
+        assert isinstance(content, list)
+        gathered_list += content
+    return gathered_list
 
 
 def to_parquet(
