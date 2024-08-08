@@ -10,14 +10,12 @@ from email.message import Message
 from typing import List, Dict, Union, Optional
 
 
-def list_jsonl_files(root_dir="data/") -> List[str]:
-    jsonl_files = []
-    for root, dirs, files in os.walk(root_dir):
-        for file in files:
-            if file.endswith(".jsonl"):
-                jsonl_files.append(os.path.join(root, file))
-
-    return jsonl_files
+def list_files(root_dir="data/") -> List[str]:
+    return [
+        os.path.join(root, file)
+        for root, _, files in os.walk(root_dir)
+        for file in files
+    ]
 
 
 def update_index(file_paths: List[str], index_file="index.parquet"):
@@ -146,21 +144,22 @@ def save_attachment(part: Message, local_dir="data/") -> None:
 
 
 def fetch_emails(
-    email_addr: str, email_pwd: str, server="imap.gmail.com", folder="dataset"
+    email_addr: str, email_pwd: str, server="imap.gmail.com", criteria="UNSEEN", folder="dataset"
 ) -> None:
     mail = imaplib.IMAP4_SSL(server)
     mail.login(email_addr, email_pwd)
     mail.select(folder)
 
-    # 仅搜索未读邮件
-    _, messages = mail.search(None, "UNSEEN")
-    # assert isinstance(messages, List[bytes]), sys.exit(1)
+    status, messages = mail.search(None, criteria)
+    assert status == "OK", "Status must be OK!"
     email_ids = messages[0].split()
 
     print(f"* Fetched {len(email_ids)} emails")
 
     for email_id in email_ids:
         status, msg_data = mail.fetch(email_id, "(RFC822)")
+        assert status == "OK", "Status must be OK!"
+        
         msg = email.message_from_bytes(msg_data[0][1])
 
         print("\n================================")
