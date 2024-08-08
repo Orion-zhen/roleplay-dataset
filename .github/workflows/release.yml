@@ -41,7 +41,7 @@ jobs:
         pip install -r requirements.txt
     - name: Generate dataset
       run: |
-        python release.py
+        python scripts/release.py
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4.3.6

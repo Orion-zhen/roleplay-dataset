@@ -5,7 +5,7 @@ on:
   #   branches:
   #     - main
   #   paths-ignore:
-  #     - "!data/**.jsonl"
+  #     - "!data/**.json"
   workflow_dispatch:
   workflow_run:
     workflows: ["Check and Merge"]
@@ -31,7 +31,7 @@ jobs:
 
     - name: Re index
       run: |
-        python reindex.py
+        python scripts/reindex.py
 
     - name: Commit index.parquet
       run: |
