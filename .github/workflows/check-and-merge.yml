@@ -7,9 +7,9 @@ on:
       - reopened
     branches:
       - main
-    # 仅对'data/'下的jsonl文件触发
+    # 仅对'data/'下的json文件触发
     paths-ignore:
-      - "!data/**.jsonl"
+      - "!data/**.json"
 
 jobs:
   check-and-merge:
