@@ -39,7 +39,7 @@ def is_subset(indexed_files: List[str], all_files: List[str]) -> bool:
     return indexed_set.issubset(all_set)
 
 
-def is_valid(file_path: str) -> bool:
+def is_valid_jsonl(file_path: str) -> bool:
     # 1. 读入文件
     try:
         with open(file_path, "r", encoding="utf-8") as f:

@@ -1,4 +1,4 @@
-from utils import is_valid, list_jsonl_files, is_subset, read_index
+from utils import is_valid_jsonl, list_jsonl_files, is_subset, read_index
 from tqdm import tqdm
 import sys
 
@@ -12,7 +12,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     for file in tqdm(file_paths):
-        if not is_valid(file):
+        if not is_valid_jsonl(file):
             print("Invalid file!")
             sys.exit(1)
     print("File valid!")
