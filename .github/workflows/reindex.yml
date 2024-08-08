@@ -1,4 +1,4 @@
-name: ReIndex on Merge
+name: ReIndex on Change
 
 on:
   # push:
@@ -8,7 +8,7 @@ on:
   #     - "!data/**.json"
   workflow_dispatch:
   workflow_run:
-    workflows: ["Check and Merge"]
+    workflows: ["Check and Merge", "Fetch Emails"]
     types:
       - completed
 
