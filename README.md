@@ -27,7 +27,7 @@
 想要生成数据集文件, 只需运行:
 
 ```shell
-python release.py
+python scripts/release.py
 ```
 
 这会根据`data`文件夹中的所有内容, 在仓库目录下生成一个名为`dataset.parquet`的数据集文件.
