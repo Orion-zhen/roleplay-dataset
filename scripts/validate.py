@@ -1,4 +1,4 @@
-from scripts.utils import is_valid_jsonl, list_jsonl_files, is_subset, read_index
+from utils import is_valid_jsonl, list_jsonl_files, is_subset, read_index
 from tqdm import tqdm
 import sys
 
