@@ -42,26 +42,44 @@ def is_subset(indexed_files: List[str], all_files: List[str]) -> bool:
     return indexed_set.issubset(all_set)
 
 
-def is_valid_json(file_content: bytes) -> bool:
-    try:
-        content = json.loads(file_content)
-    except Exception as e:
-        print(e)
-        return False
-    if not isinstance(content, dict):
-        return False
-    if "system" not in content.keys():
-        return False
-    if "conversations" not in content.keys():
-        return False
-    conversations = content.get("conversations")
-    if not isinstance(conversations, list):
-        return False
-    for conversation in conversations:
-        if not isinstance(conversation, dict):
+def is_valid_file_or_bytes(file_or_bytes: Union[bytes, str]) -> bool:
+    if isinstance(file_or_bytes, bytes):
+        try:
+            content = json.loads(file_or_bytes)
+        except Exception as e:
+            print(e)
             return False
-        if "from" not in conversation.keys() or "value" not in conversation.keys():
+    elif isinstance(file_or_bytes, str) and file_or_bytes.endswith(".json"):
+        try:
+            with open(file_or_bytes, "r", encoding="utf-8") as f:
+                content = json.load(f)
+        except Exception as e:
+            print(e)
             return False
+    else:
+        return False
+
+    return True
+
+
+def is_sharegpt_format(contents: List[Dict[str, Union[str, List[Dict[str, str]]]]]):
+    if not isinstance(contents, list):
+        return False
+    for content in contents:
+        if not isinstance(content, dict):
+            return False
+        if "system" not in content.keys():
+            return False
+        if "conversations" not in content.keys():
+            return False
+        conversations = content.get("conversations")
+        if not isinstance(conversations, list):
+            return False
+        for conversation in conversations:
+            if not isinstance(conversation, dict):
+                return False
+            if "from" not in conversation.keys() or "value" not in conversation.keys():
+                return False
 
     return True
 
@@ -119,7 +137,7 @@ def save_attachment(part: Message, local_dir="data/") -> None:
     filename = part.get_filename()
     if filename and filename.endswith(".json"):
         file_content = part.get_payload(decode=True)
-        if is_valid_json(file_content):
+        if is_valid_file_or_bytes(file_content):
             with open(os.path.join(local_dir, filename), "wb") as f:
                 f.write(file_content)
                 print(f"Saved: {filename}")
@@ -147,7 +165,7 @@ def fetch_emails(
 
         print("\n================================")
         print(f"Date: {msg.get('Date')}")
-        
+
         for part in msg.walk():
             if part.get_content_maintype() == "multipart":
                 continue
@@ -155,11 +173,11 @@ def fetch_emails(
                 continue
 
             save_attachment(part, "data/")
-        
+
         mail.store(email_id, "+FLAGS", "\\Seen")
 
         print("================================\n")
-    
+
     mail.logout()
 
 

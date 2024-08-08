@@ -39,7 +39,7 @@ jobs:
       - name: Check data files
         id: validate_files
         run: |
-          python validate.py
+          python scripts/validate.py
           if [ $? -ne 0 ]; then
               exit 1
           fi
