@@ -2,7 +2,7 @@ name: Fetch Emails
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 每天UTC+8 8:00触发
+    - cron: '0 0 1 * *'  # 每月1日UTC+8 8:00触发
   workflow_dispatch:  # 允许手动触发
 
 jobs:
