@@ -34,4 +34,4 @@ python scripts/release.py
 
 ## 致谢
 
-[@Kasio](https://github.com/Kas1o)提供了便捷的数据导出插件
+[@Kas1o](https://github.com/Kas1o)提供了便捷的数据导出插件
